@@ -70,7 +70,7 @@ class Scraper:
         date_element = self.soup.find('time', {'datetime': True})
 
         if not date_element:
-            raise ScraperError(f'Could not find date in article {self.url.path}')
+            raise ScraperError(f'Could not find date.')
 
         date_string = date_element['datetime']
 
@@ -81,7 +81,7 @@ class Scraper:
             except ValueError:
                 pass
 
-        raise ScraperError(f'Unrecognized date format {date_string}')
+        raise ScraperError(f'Unrecognized date format "{date_string}".')
 
     def get_links(self: object) -> List[str]:
         href_elements = self.soup.find_all('a', {'href': True})

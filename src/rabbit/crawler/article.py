@@ -1,7 +1,5 @@
 from datetime import datetime
-from hashlib import md5
 from typing import List
-import json
 
 from .scraper import Scraper
 
@@ -44,10 +42,3 @@ class Article:
             'category': self.category,
             'paragraphs': self.content
         }
-
-    def hash(self: object) -> str:
-        return md5(self.content.encode('utf-8')).hexdigest()[:10]
-
-
-class ArticleError(Exception):
-    pass
