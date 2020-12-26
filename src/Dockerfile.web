@@ -1,0 +1,9 @@
+FROM python:3.7
+
+COPY requirements.web.txt .
+RUN pip install -r requirements.web.txt && \
+rm requirements.web.txt
+
+COPY rabbit ./rabbit/
+
+ENTRYPOINT ["gunicorn", "-b", "0.0.0.0:80", "--workers", "8", "rabbit.web:app"]

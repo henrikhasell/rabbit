@@ -3,12 +3,14 @@ from typing import List
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship
+from retry import retry
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from rabbit.web.serialise import serialise_model
 from .schema import db, Article, Paragraph
 
 
+@retry(exceptions=[IntegrityError, OperationalError], delay=1, tries=3)
 def initialise_storage(app: Flask) -> None:
     db.init_app(app)
     with app.app_context():

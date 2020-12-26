@@ -1,0 +1,21 @@
+version: '3.3'
+services:
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_DB=rabbit
+      - POSTGRES_USER=rabbit
+      - POSTGRES_PASSWORD=rabbit
+  cache:
+    image: redis
+    ports:
+      - 6379:6379
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    environment:
+      - RABBIT_API_KEY=test
+      - RABBIT_DATABASE_URI=postgres://rabbit:rabbit@database
+    ports:
+      - 8080:80

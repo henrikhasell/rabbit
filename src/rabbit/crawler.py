@@ -1,6 +1,10 @@
 from collections import namedtuple
 from concurrent.futures import as_completed, ThreadPoolExecutor
+from os import environ
 from typing import Generator, List
+
+import requests
+from requests.api import head
 
 from .article import Article
 from .logger import logger
@@ -44,7 +48,7 @@ class Crawler:
                     except Exception as error:
                         logger.error(f'⚠️  {url} ({depth})')
                         logger.error(f'An exception occured: {error}')
-                        continue
+                        raise error
 
                     yield article
 
@@ -52,3 +56,19 @@ class Crawler:
                         for url in article.related:
                             self._append_queue(url, depth + 1)
 
+
+if __name__ == '__main__':
+    crawler = Crawler([
+        'https://www.bbc.co.uk/news/uk',
+        'https://www.bbc.co.uk/news/world',
+        'https://www.bbc.co.uk/news/business',
+        'https://www.bbc.co.uk/news/politics',
+        'https://www.bbc.co.uk/news/technology',
+        'https://www.bbc.co.uk/news/science_and_environment',
+        'https://www.bbc.co.uk/news/health',
+        'https://www.bbc.co.uk/news/education',
+        'https://www.bbc.co.uk/news/entertainment_and_arts'
+    ])
+    for article in crawler.crawl():
+        response = requests.post(environ['RABBIT_WEB_URL'], headers={'X-Api-Key': 'test'}, json=article.json())
+        response.raise_for_status()

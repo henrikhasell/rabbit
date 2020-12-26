@@ -94,9 +94,13 @@ class Scraper:
         return list(filter(related_news, self.get_links()))
 
     def get_content(self: object) -> List[str]:
+        if not self.soup.article:
+            return []
+
         paragraphs = self.soup.article.find_all('div', {
             'data-component': 'text-block'
         })
+
         return [i.text for i in paragraphs]
 
     def get_category(self: object) -> str:

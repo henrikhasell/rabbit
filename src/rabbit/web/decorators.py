@@ -11,8 +11,7 @@ def require_api_key(api: Api, api_key: str) -> Callable:
         decorated_func = api.param(
             'X-Api-Key',
             'This action requires an API key.',
-            'header',
-            required=True
+            'header'
         )(func)
         @wraps(decorated_func)
         def wrapper(*args, **kwargs):
