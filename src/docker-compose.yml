@@ -1,21 +1,37 @@
 version: '3.3'
 services:
+  cache:
+    image: redis
+    ports:
+      - 6379:6379
+  crawler:
+    build:
+      context: .
+    entrypoint: python -m rabbit.crawler
+    environment:
+      - RABBIT_API_KEY=test
+      - RABBIT_WEB_URL=http://web/api/article
   database:
     image: postgres
     environment:
       - POSTGRES_DB=rabbit
       - POSTGRES_USER=rabbit
       - POSTGRES_PASSWORD=rabbit
-  cache:
-    image: redis
-    ports:
-      - 6379:6379
+  poem_builder:
+    build:
+      context: .
+    entrypoint: python -m rabbit.poem
+    environment:
+      - RABBIT_API_KEY=test
+      - RABBIT_POEM_ENDPOINT=http://web/api/poem
+      - RABBIT_TEXT_ENDPOINT=http://web/api/text
   web:
     build:
       context: .
-      dockerfile: Dockerfile.web
     environment:
       - RABBIT_API_KEY=test
+      - RABBIT_CACHE_HOST=cache
+      - RABBIT_CACHE_PORT=6379
       - RABBIT_DATABASE_URI=postgres://rabbit:rabbit@database
     ports:
       - 8080:80

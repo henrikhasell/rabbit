@@ -1,3 +1,4 @@
+from email.utils import parsedate_to_datetime
 from typing import List, Optional
 from urllib.parse import ParseResult, urlparse
 
@@ -45,7 +46,7 @@ class Scraper:
     @staticmethod
     @retry(exceptions=requests.RequestException, tries=5, delay=1)
     def fetch(url: str) -> requests.Response:
-        return requests.get(url)
+        return requests.get(url, timeout=5)
 
     def __init__(self: object, url: str):
         result = Scraper.fetch(url)
@@ -63,14 +64,19 @@ class Scraper:
         return f'{url.scheme}://{url.hostname}{url.path}'
 
     def get_title(self: object) -> str:
-        return self.soup.h1.text
+        header_element = self.soup.h1
+
+        if not header_element:
+            raise ScraperError('Header missing from page.')
+
+        return header_element.text
 
 
     def get_date(self: object) -> datetime:
         date_element = self.soup.find('time', {'datetime': True})
 
         if not date_element:
-            raise ScraperError(f'Could not find date.')
+            raise ScraperError(f'Date missing from page.')
 
         date_string = date_element['datetime']
 
@@ -80,6 +86,17 @@ class Scraper:
                     .replace(tzinfo=timezone.utc)
             except ValueError:
                 pass
+
+        try:
+            # RFC-822
+            return parsedate_to_datetime(date_string)
+        except TypeError:
+            pass
+        try:
+            # ISO-8601
+            return datetime.fromisoformat(date_string)
+        except ValueError:
+            pass
 
         raise ScraperError(f'Unrecognized date format "{date_string}".')
 
@@ -104,4 +121,9 @@ class Scraper:
         return [i.text for i in paragraphs]
 
     def get_category(self: object) -> str:
-        return self.soup.find('meta', {'property': 'article:section'}).attrs['content']
+        meta_tag = self.soup.find('meta', {'property': 'article:section'})
+
+        if not meta_tag:
+            raise ScraperError('Meta tag missing from page.')
+
+        return meta_tag.attrs['content']

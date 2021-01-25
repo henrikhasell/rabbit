@@ -1,8 +1,8 @@
 FROM python:3.7
 
-COPY requirements.web.txt .
-RUN pip install -r requirements.web.txt && \
-rm requirements.web.txt
+COPY requirements.txt .
+RUN pip install -r requirements.txt && \
+rm requirements.txt
 
 COPY rabbit ./rabbit/
 

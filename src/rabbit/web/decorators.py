@@ -5,13 +5,31 @@ from flask import abort, request
 from flask.helpers import make_response
 from flask_restx import Api
 
+from .poem import PoemType
+
+
+def require_poem_scope(api: Api) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        decorated_func = api.param(
+            'scope',
+            'The scope of the poem.',
+            enum=[i.value for i in PoemType],
+            required=True
+        )(func)
+        @wraps(decorated_func)
+        def wrapper(*args, **kwargs) -> Callable:
+            return decorated_func(*args, **kwargs)
+        return wrapper
+    return decorator
+
 
 def require_api_key(api: Api, api_key: str) -> Callable:
-    def decorator(func: Callable):
+    def decorator(func: Callable) -> Callable:
         decorated_func = api.param(
             'X-Api-Key',
             'This action requires an API key.',
-            'header'
+            'header',
+            required=True
         )(func)
         @wraps(decorated_func)
         def wrapper(*args, **kwargs):
@@ -24,7 +42,7 @@ def require_api_key(api: Api, api_key: str) -> Callable:
 
 def plain_text(func: Callable) -> Callable:
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> Callable:
         result = func(*args, **kwargs)
         response = make_response(result)
         response.mimetype = 'text/plain'

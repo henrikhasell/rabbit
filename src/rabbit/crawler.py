@@ -42,13 +42,12 @@ class Crawler:
                     try:
                         article = future.result()
                         logger.info(f'✅ {url} ({depth})')
-                    except ScraperError:
-                        logger.info(f'❎ {url} ({depth})')
+                    except ScraperError as error:
+                        logger.info(f'❎ {url} ({depth}) {error}')
                         continue
                     except Exception as error:
                         logger.error(f'⚠️  {url} ({depth})')
                         logger.error(f'An exception occured: {error}')
-                        raise error
 
                     yield article
 
@@ -58,17 +57,22 @@ class Crawler:
 
 
 if __name__ == '__main__':
-    crawler = Crawler([
-        'https://www.bbc.co.uk/news/uk',
-        'https://www.bbc.co.uk/news/world',
-        'https://www.bbc.co.uk/news/business',
-        'https://www.bbc.co.uk/news/politics',
-        'https://www.bbc.co.uk/news/technology',
-        'https://www.bbc.co.uk/news/science_and_environment',
-        'https://www.bbc.co.uk/news/health',
-        'https://www.bbc.co.uk/news/education',
-        'https://www.bbc.co.uk/news/entertainment_and_arts'
-    ])
-    for article in crawler.crawl():
-        response = requests.post(environ['RABBIT_WEB_URL'], headers={'X-Api-Key': 'test'}, json=article.json())
-        response.raise_for_status()
+    while True:
+        crawler = Crawler([
+            'https://www.bbc.co.uk/news/uk',
+            'https://www.bbc.co.uk/news/world',
+            'https://www.bbc.co.uk/news/business',
+            'https://www.bbc.co.uk/news/politics',
+            'https://www.bbc.co.uk/news/technology',
+            'https://www.bbc.co.uk/news/science_and_environment',
+            'https://www.bbc.co.uk/news/health',
+            'https://www.bbc.co.uk/news/education',
+            'https://www.bbc.co.uk/news/entertainment_and_arts'
+        ])
+        for article in crawler.crawl():
+            response = requests.post(
+                environ['RABBIT_WEB_URL'],
+                headers={'X-Api-Key': 'test'},
+                json=article.json()
+            )
+            response.raise_for_status()

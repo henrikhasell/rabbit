@@ -4,13 +4,14 @@ from typing import Callable
 
 from flask import abort, Blueprint, Flask, request
 from flask_restx import Api, fields, Resource, reqparse
-from flask_restx.utils import default_id
 from jsonschema import FormatChecker
 from werkzeug.exceptions import default_exceptions
 
-from .decorators import plain_text, require_api_key
+from .decorators import require_poem_scope, plain_text, require_api_key
+from .poem import Poem, PoemManager, PoemType
 from .serialise import serialise_model
-from .storage import add_or_update_article, get_articles, get_text_blob
+from .storage import add_or_update_article, get_articles, get_text_blob, \
+    articles_by_date_published
 
 
 api_blueprint = Blueprint('api', __name__)
@@ -19,10 +20,9 @@ api = Api(
     api_blueprint,
     doc='/api', 
     description='An API for updating and viewing the rabbit.',
-    format_checker=FormatChecker(formats=['date-time']),
+    #format_checker=FormatChecker(formats=['date-time']),
     prefix='/api', 
     title='🐰 The Rabbit API',
-    validate=True,
     version='0.1'
 )
 
@@ -50,6 +50,19 @@ article_model = api.model('Article', {
     )
 })
 
+poem_model = api.model('Poem', {
+    'paragraphs': fields.List(
+        fields.String,
+        example=['First paragraph.', 'Second paragraph.'],
+        required=True
+    ),
+    'date_generated': fields.DateTime(
+        dt_format='iso8601',
+        example='2020-12-22T11:26:05.594814+00:00',
+        required=True
+    )
+})
+
 time_range = reqparse.RequestParser()
 
 time_range.add_argument(
@@ -63,7 +76,7 @@ time_range.add_argument(
 
 time_range.add_argument(
     'until',
-    default='2021-02-01',
+    default='2020-02-01',
     help='An ISO 8601 formatted date.',
     required=True,
     type=datetime.fromisoformat,
@@ -74,7 +87,6 @@ time_range.add_argument(
 def require_rabbit_api_key(func: Callable) -> Callable:
     api_key = os.environ.get('RABBIT_API_KEY', '')
     return require_api_key(api, api_key)(func)
-
 
 
 @api.route('/article')
@@ -110,6 +122,31 @@ class TextResource(Resource):
         '''Fetch text from articles within a time range.'''
         args = time_range.parse_args(strict=True)
         return get_text_blob(args['from'], args['until'])
+
+
+@api.route('/calendar/<int:year>')
+class CalendarResource(Resource):
+    def get(self: object, year: int):
+        return articles_by_date_published(year)
+
+
+@api.route('/poem')
+class PoemResource(Resource):
+    @require_poem_scope(api)
+    def get(self: object):
+        scope = PoemType(request.args['scope'])
+        poem_manager = PoemManager()
+        poem = poem_manager.get_poem(scope)
+        return (poem.json(), 200) if poem else (None, 404)
+
+    @api.expect(poem_model)
+    @require_poem_scope(api)
+    @require_rabbit_api_key
+    def post(self: object):
+        scope = PoemType(request.args['scope'])
+        poem = Poem.from_json(request.json)
+        poem_manager = PoemManager()
+        return poem_manager.add_poem(scope, poem), 200
 
 
 def initialise_api(app: Flask) -> None:

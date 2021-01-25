@@ -7,6 +7,7 @@ from .storage import initialise_storage
 
 
 app = Flask(__name__)
+app.config['RESTX_VALIDATE'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('RABBIT_DATABASE_URI', 'sqlite:///')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

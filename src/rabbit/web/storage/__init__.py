@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import List
+from typing import Dict, List
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from retry import retry
 from sqlalchemy.exc import IntegrityError, OperationalError
 
-from rabbit.web.serialise import serialise_model
+from ..serialise import serialise_model
 from .schema import db, Article, Paragraph
 
 
@@ -56,9 +56,24 @@ def get_text_blob(min: datetime, max: datetime) -> str:
     return '\n'.join(map(lambda i: i[0], results))
 
 
-def get_articles(min: datetime, max: datetime) -> str:
+def get_articles(min: datetime, max: datetime) -> List[dict]:
     results = Article.query.filter(
         Article.date_published >= min,
         Article.date_published <= max
     ).all()
     return list(map(serialise_model, results))
+
+
+def articles_by_date_published(year: int) -> Dict[str, int]:
+    query_result = db.session.query(Article.date_published).filter(
+        Article.date_published >= datetime(year, 1, 1),
+        Article.date_published <= datetime(year, 12, 31)
+    ).all()
+
+    result = {}
+
+    for date in sorted(map(lambda i: i[0], query_result)):
+        ymd = date.strftime('%Y/%m/%d')
+        result[ymd] = result.get(ymd, 0) + 1
+
+    return result
