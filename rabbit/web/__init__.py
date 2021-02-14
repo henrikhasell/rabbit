@@ -20,7 +20,7 @@ initialise_api(app)
 initialise_storage(app)
 
 
-@app.route('/rabbit')
+@app.route('/rabbit/')
 def index():
     return app.send_static_file('index.html')
 
