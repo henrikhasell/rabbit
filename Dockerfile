@@ -22,4 +22,4 @@ rm requirements.txt
 COPY rabbit ./rabbit
 COPY --from=0 /app/build ./rabbit/web/build
 
-ENTRYPOINT ["gunicorn", "-b", "0.0.0.0:80", "--workers", "8", "rabbit.web:app"]
+ENTRYPOINT ["gunicorn", "--access-logfile", "-", "-b", "0.0.0.0:80", "--workers", "8", "rabbit.web:app"]
