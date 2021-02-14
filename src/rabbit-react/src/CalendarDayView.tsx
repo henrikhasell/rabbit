@@ -1,4 +1,4 @@
-import { FC, Fragment, useEffect, useState } from 'react';
+import React, { FC, Fragment, useEffect, useState } from 'react';
 import { Card, Container, Spinner, Table } from 'react-bootstrap';
 import moment from 'moment';
 import MonthView from './MonthView';
@@ -139,7 +139,7 @@ const CalendarDayView: FC<CalendarDayViewProps> = (props) => {
         const response = await fetchCalendar(2021, abort_controller.signal);
         setCalendar(response);
       }
-      catch (_error: any) {
+      catch (error) {
         // TODO: Display the error.
       }
     };
@@ -159,7 +159,7 @@ const CalendarDayView: FC<CalendarDayViewProps> = (props) => {
         const articles = await fetchArticles(year, month, day, abort_controller.signal);
         setArticles(articles);
       }
-      catch (_error: any) {
+      catch (error) {
         // TODO: Display the error.
       }
     };

@@ -1,5 +1,5 @@
 import { Container } from 'react-bootstrap';
-import { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 interface SavedPoemProps {
   hash: string;

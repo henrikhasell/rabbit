@@ -1,7 +1,8 @@
 import bunny_image from './bunny.png';
+import React, { FC } from 'react';
 import { Col, Image, Jumbotron, Row } from 'react-bootstrap';
 
-const Header: React.FC = () => (
+const Header: FC = () => (
   <header>
     <Jumbotron>
       <Row>

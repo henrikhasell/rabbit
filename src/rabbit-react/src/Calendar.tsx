@@ -26,7 +26,7 @@ class Calendar extends Component<{year: number}, CalendarState> {
         this.abort_controller.signal
       );
       this.setState({response: response});
-    } catch(error: any) {
+    } catch(error) {
       this.setState({response: {
         error_message: `${error}`
       }})

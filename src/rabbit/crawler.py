@@ -70,6 +70,9 @@ if __name__ == '__main__':
             'https://www.bbc.co.uk/news/entertainment_and_arts'
         ])
         for article in crawler.crawl():
+            if not article.content:
+                # Do not process empty articles.
+                continue
             response = requests.post(
                 environ['RABBIT_WEB_URL'],
                 headers={'X-Api-Key': 'test'},

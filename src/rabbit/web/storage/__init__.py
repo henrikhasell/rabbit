@@ -6,8 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 from retry import retry
 from sqlalchemy.exc import IntegrityError, OperationalError
 
-from ..serialise import serialise_model
+from ...article import Article as DeserialisedArticle
 from .schema import db, Article, Paragraph
+from ..serialise import serialise_model
 
 
 @retry(exceptions=[IntegrityError, OperationalError], delay=1, tries=3)
@@ -48,6 +49,7 @@ def add_or_update_article(
 
     return return_code
 
+
 def get_text_blob(min: datetime, max: datetime) -> str:
     results = Paragraph.query.join(Article).filter(
         Article.date_published >= min,
@@ -56,12 +58,24 @@ def get_text_blob(min: datetime, max: datetime) -> str:
     return '\n'.join(map(lambda i: i[0], results))
 
 
-def get_articles(min: datetime, max: datetime) -> List[dict]:
+def get_articles(min: datetime, max: datetime) -> List[DeserialisedArticle]:
     results = Article.query.filter(
         Article.date_published >= min,
         Article.date_published <= max
+    ).order_by(
+        Article.date_published
     ).all()
-    return list(map(serialise_model, results))
+    return list(map(
+        lambda i: DeserialisedArticle(
+            i.url,
+            i.title,
+            i.date_published,
+            i.paragraphs,
+            [],
+            i.category
+        ),
+        results
+    ))
 
 
 def articles_by_date_published(year: int) -> Dict[str, int]:

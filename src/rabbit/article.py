@@ -1,4 +1,6 @@
+import json
 from datetime import datetime
+from hashlib import md5
 from typing import List
 
 from .scraper import Scraper
@@ -33,6 +35,9 @@ class Article:
         self.content = content
         self.related = related
         self.category = category
+
+    def __hash__(self: object) -> str:
+        return md5(json.dumps(self.json()).encode()).hexdigest()[:16]
 
     def json(self: object) -> dict:
         return {

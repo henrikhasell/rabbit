@@ -20,7 +20,7 @@ api = Api(
     api_blueprint,
     doc='/api', 
     description='An API for updating and viewing the rabbit.',
-    #format_checker=FormatChecker(formats=['date-time']),
+    
     prefix='/api', 
     title='🐰 The Rabbit API',
     version='0.1'
@@ -59,6 +59,13 @@ poem_model = api.model('Poem', {
     'date_generated': fields.DateTime(
         dt_format='iso8601',
         example='2020-12-22T11:26:05.594814+00:00',
+        required=True
+    )
+})
+
+poem_with_hash_model = api.inherit('Poem With Hash', poem_model, {
+    'hash': fields.String(
+        example='1fe6ec3ce370e8d710a061afde3eee1d',
         required=True
     )
 })
@@ -111,7 +118,11 @@ class ArticleResource(Resource):
     def get(self: object):
         '''Fetch articles within a time range.'''
         args = time_range.parse_args(strict=True)
-        return get_articles(args['from'], args['until'])
+
+        return list(map(
+            lambda i: i.json(),
+            get_articles(args['from'], args['until'])
+        ))
 
 
 @api.route('/text')
@@ -139,7 +150,7 @@ class PoemResource(Resource):
         poem = poem_manager.get_poem(scope)
         return (poem.json(), 200) if poem else (None, 404)
 
-    @api.expect(poem_model)
+    @api.expect(poem_with_hash_model)
     @require_poem_scope(api)
     @require_rabbit_api_key
     def post(self: object):
@@ -147,6 +158,26 @@ class PoemResource(Resource):
         poem = Poem.from_json(request.json)
         poem_manager = PoemManager()
         return poem_manager.add_poem(scope, poem), 200
+
+
+@api.route('/saved_poem/<hash>')
+class SavedPoemResource(Resource):
+    @api.marshal_with(poem_model)
+    def get(self: object, hash: str):
+        poem_manager = PoemManager()
+        poem = poem_manager.get_saved_poem(hash)
+        return (poem.json(), 200) if poem else (None, 404)
+
+    @api.expect(poem_model)
+    def post(self: object, hash: str):
+        poem = Poem.from_json(request.json)
+        poem_manager = PoemManager()
+        success = poem_manager.save_poem(poem, hash)
+
+        if not success:
+            abort(401)
+
+        return {'permalink': f'{request.url_root}saved_poem/{poem.hash()}'}
 
 
 def initialise_api(app: Flask) -> None:

@@ -94,7 +94,7 @@ class PoemCard extends Component<PoemCardProps, PoemCardState> {
         response: poem
       });
     }
-    catch(error: unknown) {
+    catch(error) {
       const error_response: ErrorResponse = {
         error_message: `${error}`
       };

@@ -1,5 +1,5 @@
 import { Button, InputGroup, Overlay, Spinner, Tooltip } from 'react-bootstrap';
-import { Component, FC, ReactNode, useEffect, useRef, useState } from 'react';
+import React, { Component, FC, ReactNode, useEffect, useRef, useState } from 'react';
 import { ErrorResponse, PoemResponse } from './PoemDisplay';
 import { Link } from 'react-router-dom';
 

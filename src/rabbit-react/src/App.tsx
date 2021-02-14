@@ -54,7 +54,7 @@ const parseYear = (i?: string) => (i && parseInt(i)) || currentYear();
 function App(): JSX.Element {
   return (
     <div className="App">
-        <BrowserRouter basename="/rabbit">
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
           <NavigationBar/>
           <Header/>
           <Route exact path="/">
