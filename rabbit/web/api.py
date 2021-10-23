@@ -1,4 +1,5 @@
 import os
+import random
 from datetime import datetime
 from typing import Callable
 
@@ -12,6 +13,9 @@ from .poem import Poem, PoemManager, PoemType
 from .serialise import serialise_model
 from .storage import add_or_update_article, get_articles, get_text_blob, \
     articles_by_date_published
+
+
+MAX_ARTICLES=256
 
 
 api_blueprint = Blueprint('api', __name__)
@@ -118,10 +122,14 @@ class ArticleResource(Resource):
     def get(self: object):
         '''Fetch articles within a time range.'''
         args = time_range.parse_args(strict=True)
+        articles = get_articles(args['from'], args['until'])
+
+        if len(articles) > MAX_ARTICLES:
+            articles = random.sample(articles, MAX_ARTICLES)
 
         return list(map(
             lambda i: i.json(),
-            get_articles(args['from'], args['until'])
+            articles
         ))
 
 
