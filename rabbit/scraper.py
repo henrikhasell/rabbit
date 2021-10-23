@@ -44,7 +44,7 @@ class Scraper:
         return urlparse(f'{scheme}://{hostname}{path}')
 
     @staticmethod
-    @retry(exceptions=requests.RequestException, tries=5, delay=1)
+    @retry(exceptions=requests.RequestException, tries=10, delay=1, backoff=2)
     def fetch(url: str) -> requests.Response:
         return requests.get(url, timeout=5)
 

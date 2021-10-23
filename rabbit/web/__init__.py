@@ -20,8 +20,8 @@ initialise_api(app)
 initialise_storage(app)
 
 
-@app.route('/rabbit/')
-def index():
+@app.errorhandler(404)
+def index(_error):
     return app.send_static_file('index.html')
 
 

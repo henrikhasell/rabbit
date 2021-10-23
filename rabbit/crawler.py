@@ -16,7 +16,7 @@ QueueItem = namedtuple('QueueItem', ['url', 'depth'])
 
 class Crawler:
     def __init__(self: object, url_list: List[str]):
-        self.max_depth = 5
+        self.max_depth = 3
         self.queue = set(QueueItem(i, 0) for i in url_list)
         self.visited_sites = set()
 
@@ -32,7 +32,7 @@ class Crawler:
 
     def crawl(self: object) -> Generator[Article, None, None]:
         while len(self.queue) > 0:
-            with ThreadPoolExecutor(max_workers=32) as executor:
+            with ThreadPoolExecutor(max_workers=16) as executor:
                 mapping = {executor.submit(self.get_article, i.url): i for i in self.queue}
                 self.queue = []
 
